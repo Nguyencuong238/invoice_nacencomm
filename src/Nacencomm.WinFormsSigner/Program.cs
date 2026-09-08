@@ -128,7 +128,7 @@ try
     Console.WriteLine("=================================================");
     app.Run();
 }
-catch (Exception ex)
+catch (Exception)
 {
     Console.ForegroundColor = ConsoleColor.Yellow;
     Console.WriteLine("\n-------------------------------------------------");

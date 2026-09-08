@@ -1,0 +1,146 @@
+@{
+    ViewData["Title"] = "Tải xuống Ứng dụng Ký số WinForms";
+}
+
+<div class="container py-4">
+    <!-- Hero Header Banner -->
+    <div class="card border-0 shadow-sm bg-gradient bg-primary text-white rounded-3 mb-4">
+        <div class="card-body p-4 p-md-5">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <span class="badge bg-light text-primary mb-2 px-3 py-2 fs-6 fw-bold"><i class="bi bi-shield-check me-1"></i>Ứng dụng Cục bộ chính thức</span>
+                    <h2 class="display-6 fw-bold mb-3">Nacencomm WinForms Signer</h2>
+                    <p class="lead mb-4">Ứng dụng ký số cục bộ kết nối trực tiếp với Chữ ký số / USB Token CA2 trên máy tính người dùng để phát hành hóa đơn điện tử an toàn.</p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="/Home/DownloadSignerApp" class="btn btn-light btn-lg text-primary fw-bold px-4 py-3 shadow-sm">
+                            <i class="bi bi-download me-2 fs-5"></i>Tải xuống WinForms Signer (.exe)
+                        </a>
+                        <button type="button" class="btn btn-outline-light btn-lg px-4 py-3" onclick="checkWinFormsStatus()">
+                            <i class="bi bi-arrow-repeat me-2"></i>Kiểm tra kết nối App
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center d-none d-md-block">
+                    <i class="bi bi-pc-display-horizontal text-white-50" style="font-size: 8rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Installation Steps -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="card-title mb-0 fw-bold text-primary"><i class="bi bi-list-ol me-2"></i>Hướng dẫn cài đặt & vận hành 3 bước</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="timeline">
+                        <div class="d-flex mb-4">
+                            <div class="flex-shrink-0">
+                                <span class="badge bg-primary rounded-circle p-3 fs-5 me-3">1</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="fw-bold">Tải xuống ứng dụng</h5>
+                                <p class="text-muted mb-0">Nhấp vào nút <strong>"Tải xuống WinForms Signer (.exe)"</strong> ở trên để tải tập tin cài đặt về máy tính cá nhân của bạn.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex mb-4">
+                            <div class="flex-shrink-0">
+                                <span class="badge bg-primary rounded-circle p-3 fs-5 me-3">2</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="fw-bold">Khởi chạy ứng dụng Signer</h5>
+                                <p class="text-muted mb-0">Mở tập tin <code>Nacencomm.WinFormsSigner.exe</code> vừa tải về. Ứng dụng sẽ tự động chạy dịch vụ lắng nghe cổng an toàn <code>127.0.0.1:8765</code> trên máy bạn.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <span class="badge bg-primary rounded-circle p-3 fs-5 me-3">3</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="fw-bold">Cắm USB Token & Ký hóa đơn</h5>
+                                <p class="text-muted mb-0">Cắm Chữ ký số (USB Token CA2) vào máy tính. Hệ thống Web sẽ tự động nhận diện thiết bị và cho phép bạn ký hàng loạt hóa đơn dễ dàng.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: App Information & System Status -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="card-title mb-0 fw-bold text-secondary"><i class="bi bi-info-circle me-2"></i>Thông tin kỹ thuật</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><i class="bi bi-tag me-2 text-muted"></i>Phiên bản:</span>
+                            <span class="fw-bold">v1.0.0</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><i class="bi bi-file-earmark me-2 text-muted"></i>Định dạng:</span>
+                            <span class="fw-bold">Executable (.exe)</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><i class="bi bi-cpu me-2 text-muted"></i>Hệ điều hành:</span>
+                            <span class="fw-bold">Windows 10/11</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><i class="bi bi-shield-lock me-2 text-muted"></i>Chuẩn mã hóa:</span>
+                            <span class="fw-bold">XMLDSIG (RSA-SHA256)</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><i class="bi bi-hdd-network me-2 text-muted"></i>Địa chỉ Local:</span>
+                            <span class="fw-bold">127.0.0.1:8765</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Live Status Card -->
+            <div class="card border-0 shadow-sm border-start border-4 border-info">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted"><i class="bi bi-activity me-1"></i>Trạng thái kết nối máy chủ Signer</h6>
+                    <div id="downloadStatusContainer" class="p-3 bg-light rounded text-center my-2">
+                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                        <span class="fw-semibold">Đang kiểm tra kết nối...</span>
+                    </div>
+                    <small class="text-muted">Hệ thống liên tục kiểm tra kết nối với dịch vụ WinForms Signer trên cổng 8765.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function checkWinFormsStatus() {
+            const container = document.getElementById('downloadStatusContainer');
+            if (!container) return;
+            
+            container.innerHTML = '<div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div><span>Đang kết nối 127.0.0.1:8765...</span>';
+            
+            if (window.winFormsSigner) {
+                window.winFormsSigner.checkStatus().then(status => {
+                    if (status.isRunning) {
+                        container.className = 'p-3 bg-success bg-opacity-10 text-success rounded text-center my-2';
+                        container.innerHTML = `<i class="bi bi-check-circle-fill me-2 fs-5"></i><strong>Đã kết nối!</strong> App Signer đang hoạt động.`;
+                    } else {
+                        container.className = 'p-3 bg-warning bg-opacity-10 text-warning rounded text-center my-2';
+                        container.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i><strong>Chưa kết nối:</strong> Hãy tải và bật app WinForms Signer.`;
+                    }
+                }).catch(() => {
+                    container.className = 'p-3 bg-warning bg-opacity-10 text-warning rounded text-center my-2';
+                    container.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i><strong>Chưa kết nối:</strong> Hãy tải và bật app WinForms Signer.`;
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            checkWinFormsStatus();
+        });
+    </script>
+}

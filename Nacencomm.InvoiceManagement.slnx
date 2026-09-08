@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Nacencomm.InvoiceManagement/Nacencomm.InvoiceManagement.csproj" />
+    <Project Path="src/Nacencomm.WinFormsSigner/Nacencomm.WinFormsSigner.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Nacencomm.InvoiceManagement.Tests/Nacencomm.InvoiceManagement.Tests.csproj" />
+  </Folder>
+</Solution>

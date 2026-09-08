@@ -1,0 +1,223 @@
+@model IReadOnlyList<Nacencomm.InvoiceManagement.Models.Invoice>
+@{
+    var filter = ViewBag.Filter as Nacencomm.InvoiceManagement.Models.InvoiceFilter ?? new Nacencomm.InvoiceManagement.Models.InvoiceFilter();
+    bool isDraftTab = string.Equals(filter.TabStatus, "DRAFT", StringComparison.OrdinalIgnoreCase);
+    int colSpan = isDraftTab ? 10 : 12;
+}
+
+<!-- Toolbar per tab -->
+@if (isDraftTab)
+{
+    <div class="d-flex justify-content-end align-items-center mb-2">
+        <button type="button" class="btn btn-primary btn-sm fw-bold shadow-sm px-4" style="background-color: #0066cc; border-color: #0066cc;" onclick="exportInvoicesExcel()">
+            XUẤT EXCEL
+        </button>
+    </div>
+}
+else
+{
+    <div class="batch-toolbar d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-dark selection-badge">
+                <i class="bi bi-check2-square me-1"></i>Đã chọn: <span id="selectedInvoiceCount">0 / 50</span> hóa đơn
+            </span>
+            <button type="button" id="btnBatchSign" class="btn btn-secondary btn-sm fw-bold shadow-sm px-3" disabled>
+                <i class="bi bi-pen-fill me-1"></i> Ký thông điệp và Gửi hóa đơn lên Cơ quan thuế
+            </button>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-secondary btn-sm fw-semibold shadow-sm px-3 d-none" onclick="alert('Đã đồng bộ cập nhật kết quả truyền nhận từ Cơ quan thuế!');">
+                <i class="bi bi-arrow-repeat me-1"></i> Cập nhật kết quả truyền nhận
+            </button>
+            <button type="button" class="btn btn-success btn-sm fw-bold shadow-sm px-3" style="background-color: #00a65a; border-color: #00a65a;" onclick="exportInvoicesExcel()">
+                <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel
+            </button>
+        </div>
+    </div>
+}
+
+<div class="table-responsive bg-white rounded border shadow-sm">
+    <table class="table table-bordered table-hover invoice-table align-middle mb-0" id="mainInvoiceGrid">
+        <thead class="text-white" style="background-color: #337ab7;">
+            <tr class="align-middle text-center small fw-bold">
+                @if (!isDraftTab)
+                {
+                    <th style="width: 40px;" class="py-2">#</th>
+                }
+                <th style="width: 90px;" class="py-2">IDHD</th>
+                <th style="width: 110px;" class="py-2">Ngày hóa đơn</th>
+                <th style="width: 90px;" class="py-2">Số hóa đơn</th>
+                <th class="py-2 text-start">Người mua</th>
+                <th style="width: 140px;" class="py-2 text-end">Tổng tiền thanh toán</th>
+                <th style="width: 70px;" class="py-2">Loại tiền</th>
+                <th style="width: 100px;" class="py-2">Mã tra cứu</th>
+                <th style="width: 110px;" class="py-2">Hình thức</th>
+                <th style="width: 110px;" class="py-2">Trạng thái</th>
+                @if (!isDraftTab)
+                {
+                    <th style="width: 170px;" class="py-2">Mã CQT</th>
+                }
+                <th style="width: 170px;" class="py-2">Chức năng</th>
+            </tr>
+            <!-- Dòng ô lọc nhanh trực tiếp theo từng cột (Inline Column Filter Row) -->
+            <tr class="bg-light align-middle text-center p-1">
+                @if (!isDraftTab)
+                {
+                    <td class="p-1">
+                        <input type="checkbox" id="selectAllInvoices" class="form-check-input" title="Chọn tất cả (tối đa 50)" />
+                    </td>
+                }
+                <td class="p-1"></td>
+                <td class="p-1"></td>
+                <td class="p-1">
+                    <input type="text" id="filterColInvNum" class="form-control form-control-sm bg-white border-secondary text-center px-1" placeholder="" style="height: 24px; font-size: 11px;" onkeyup="applyInlineColumnFilter()" />
+                </td>
+                <td class="p-1">
+                    <input type="text" id="filterColBuyer" class="form-control form-control-sm bg-white border-secondary text-start px-2" placeholder="" style="height: 24px; font-size: 11px;" onkeyup="applyInlineColumnFilter()" />
+                </td>
+                <td class="p-1"></td>
+                <td class="p-1"></td>
+                <td class="p-1">
+                    <input type="text" id="filterColLookup" class="form-control form-control-sm bg-white border-secondary text-center px-1" placeholder="" style="height: 24px; font-size: 11px;" onkeyup="applyInlineColumnFilter()" />
+                </td>
+                <td class="p-1"></td>
+                <td class="p-1"></td>
+                @if (!isDraftTab)
+                {
+                    <td class="p-1">
+                        <input type="text" id="filterColCqt" class="form-control form-control-sm bg-white border-secondary text-center px-1" placeholder="" style="height: 24px; font-size: 11px;" onkeyup="applyInlineColumnFilter()" />
+                    </td>
+                }
+                <td class="p-1"></td>
+            </tr>
+        </thead>
+        <tbody class="small">
+            @if (Model == null || !Model.Any())
+            {
+                <tr>
+                    <td colspan="@colSpan" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
+                        Không có dữ liệu hóa đơn nào phù hợp với bộ lọc tìm kiếm.
+                    </td>
+                </tr>
+            }
+            else
+            {
+                foreach (var item in Model)
+                {
+                    bool isSelectable = item.CanBeSigned;
+                    bool hasSubRow = !isDraftTab && !string.IsNullOrEmpty(item.CqtStatusText);
+                    
+                    <tr class="invoice-data-row" data-id="@item.Id" data-invnum="@item.InvoiceNumber" data-buyer="@item.BuyerName @item.BuyerPhone @item.BuyerEmail" data-lookup="@item.LookupCode" data-cqt="@item.TaxAuthorityCode">
+                        @if (!isDraftTab)
+                        {
+                            <td class="text-center">
+                                <input type="checkbox" 
+                                       class="form-check-input invoice-checkbox" 
+                                       value="@item.Id" 
+                                       data-date="@item.InvoiceDate.ToString("yyyy-MM-dd")"
+                                       data-number="@item.InvoiceNumber"
+                                       @(isSelectable ? "" : "disabled") 
+                                       title="@(isSelectable ? "Chọn để ký số" : "Hóa đơn không ở trạng thái chờ ký")" />
+                            </td>
+                        }
+                        <td class="text-center text-muted">@item.Id</td>
+                        <td class="text-center">@item.InvoiceDate.ToString("dd/MM/yyyy")</td>
+                        <td class="text-center fw-bold">@item.InvoiceNumber</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(item.BuyerPhone) || !string.IsNullOrEmpty(item.BuyerEmail))
+                            {
+                                <div>@item.BuyerPhone</div>
+                                <div class="text-muted small">@item.BuyerEmail</div>
+                            }
+                            else
+                            {
+                                <div class="fw-semibold text-dark text-truncate" style="max-width: 250px;" title="@item.BuyerName">@item.BuyerName</div>
+                                @if (!string.IsNullOrEmpty(item.BuyerTaxCode))
+                                {
+                                    <small class="text-muted">MST: @item.BuyerTaxCode</small>
+                                }
+                            }
+                        </td>
+                        <td class="text-end fw-semibold">@item.TotalAmount.ToString("#,##0")</td>
+                        <td class="text-center text-muted">@item.Currency</td>
+                        <td class="text-center"><code>@item.LookupCode</code></td>
+                        <td class="text-center fst-italic">@item.FormType</td>
+                        <td class="text-center fw-semibold">@item.Status</td>
+                        @if (!isDraftTab)
+                        {
+                            <td class="text-center small text-truncate" style="max-width: 170px;" title="@item.TaxAuthorityCode">@(item.TaxAuthorityCode ?? "-")</td>
+                        }
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center align-items-center gap-2 small">
+                                <a href="/Invoice/GetXml?id=@item.Id" target="_blank" class="text-decoration-none" style="color: #0088b3;" title="Xem Hóa đơn">Xem</a>
+                                
+                                @if (isDraftTab || item.Status == "Mới lập" || item.Status == "HÓA ĐƠN NHÁP")
+                                {
+                                    <a href="#" class="text-decoration-none ms-1" style="color: #0088b3;" onclick="alert('Mở màn hình sửa hóa đơn nháp'); return false;">
+                                        <i class="bi bi-pencil me-1"></i>Sửa
+                                    </a>
+                                    <a href="#" class="text-decoration-none ms-1" style="color: #6c757d;" onclick="alert('Xóa hóa đơn nháp thành công'); return false;">
+                                        <i class="bi bi-x-lg me-1"></i>Xóa nháp
+                                    </a>
+                                    <a href="#" class="text-decoration-none ms-1" style="color: #0088b3;" onclick="triggerSingleSign(@item.Id); return false;">
+                                        <i class="bi bi-vector-pen me-1"></i>Ký hóa đơn
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a href="#" class="text-secondary text-decoration-none" onclick="alert('Sửa hóa đơn'); return false;">
+                                        <i class="bi bi-pencil me-1"></i>Sửa
+                                    </a>
+                                    <a href="#" class="text-danger text-decoration-none" onclick="alert('Hủy hóa đơn'); return false;">
+                                        <i class="bi bi-journal-x me-1"></i>Hủy hóa đơn
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+
+                    @if (hasSubRow)
+                    {
+                        <tr class="bg-light invoice-sub-row" style="border-top: none;">
+                            <td colspan="@colSpan" class="py-2 px-3">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div class="text-success fw-semibold">
+                                        <i class="bi bi-check-circle me-1"></i>@item.CqtStatusText
+                                    </div>
+                                    <div class="d-flex align-items-center gap-3 text-secondary small">
+                                        <a href="/Invoice/GetXml?id=@item.Id" target="_blank" class="text-primary text-decoration-none">Xem</a>
+                                        <a href="#" class="text-secondary text-decoration-none" onclick="alert('Đang chuẩn bị file in chuyển đổi...'); return false;">
+                                            <i class="bi bi-printer me-1"></i>In chuyển đổi
+                                        </a>
+                                        <a href="#" class="text-danger text-decoration-none" onclick="alert('Xác nhận hủy hóa đơn'); return false;">
+                                            <i class="bi bi-journal-x me-1"></i>Hủy hóa đơn
+                                        </a>
+                                        <a href="#" class="text-secondary text-decoration-none" onclick="alert('Lịch sử nhật ký ký & truyền nhận: Thành công 100%'); return false;">
+                                            <i class="bi bi-clock-history me-1"></i>Xem nhật ký
+                                        </a>
+                                        <a href="#" class="text-secondary text-decoration-none" onclick="alert('Chức năng xử lý sai sót hóa đơn'); return false;">
+                                            <i class="bi bi-pencil-square me-1"></i>Xử lý sai sót
+                                        </a>
+                                        <a href="#" class="text-secondary text-decoration-none" onclick="alert('Chức năng lập thông báo sai sót (TBSS)'); return false;">
+                                            <i class="bi bi-file-earmark-text me-1"></i>Lập TBSS
+                                        </a>
+                                        <a href="#" class="text-primary text-decoration-none" onclick="alert('Đã gửi lại email thông báo hóa đơn thành công!'); return false;">
+                                            <i class="bi bi-envelope me-1"></i>Gửi lại Email
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mt-3 text-muted small">
+    <div>Tổng số hóa đơn : <strong>@(Model?.Count ?? 0)</strong></div>
+    <div>Trang 1 / 1</div>
+</div>

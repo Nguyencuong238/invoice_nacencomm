@@ -1,0 +1,83 @@
+<!-- Modal Tiến trình Ký số Hàng loạt (Batch Signing Progress Modal) -->
+<div class="modal fade" id="signingProgressModal" tabindex="-1" aria-labelledby="signingProgressModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header modal-header-nacen py-3">
+                <h5 class="modal-header-nacen modal-title fw-bold" id="signingProgressModalLabel">
+                    <i class="bi bi-shield-check me-2"></i>TIẾN TRÌNH KÝ HÓA ĐƠN ĐIỆN TỬ (Tối đa 50)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" id="btnCloseSigningModal" data-bs-dismiss="modal" aria-label="Close" disabled></button>
+            </div>
+            
+            <div class="modal-body p-4">
+                <!-- Summary Metrics Bar -->
+                <div class="row g-2 mb-3 text-center">
+                    <div class="col-3">
+                        <div class="p-2 border rounded bg-light">
+                            <div class="text-muted small">Tổng hóa đơn</div>
+                            <div class="fs-4 fw-bold text-dark" id="modalTotalCount">0</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-2 border rounded bg-light">
+                            <div class="text-muted small">Đã xử lý</div>
+                            <div class="fs-4 fw-bold text-primary" id="modalCompletedCount">0</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-2 border rounded bg-light">
+                            <div class="text-muted small">Thành công</div>
+                            <div class="fs-4 fw-bold text-success" id="modalSuccessCount">0</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-2 border rounded bg-light">
+                            <div class="text-muted small">Thất bại</div>
+                            <div class="fs-4 fw-bold text-danger" id="modalFailedCount">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small text-muted" id="modalStatusText">Đang chuẩn bị tiến trình ký...</span>
+                    </div>
+                    <div class="progress progress-height shadow-sm">
+                        <div id="modalProgressBar" 
+                             class="progress-bar progress-bar-striped progress-bar-animated bg-success fw-bold" 
+                             role="progressbar" 
+                             style="width: 0%">0%</div>
+                    </div>
+                </div>
+
+                <!-- Detail Table -->
+                <div class="table-responsive border rounded" style="max-height: 280px;">
+                    <table class="table table-sm table-hover align-middle mb-0 small">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th style="width: 120px;">Số HĐ</th>
+                                <th style="width: 120px;">Ngày xuất</th>
+                                <th style="width: 150px;">Trạng thái</th>
+                                <th>Chi tiết / Thông báo lỗi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="signingModalItemsTbody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light py-2">
+                <button type="button" class="btn btn-danger" id="btnCancelSigning">
+                    <i class="bi bi-stop-circle me-1"></i>Hủy tiến trình
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnCloseSigningModal" data-bs-dismiss="modal" disabled>
+                    <i class="bi bi-x-circle me-1"></i>Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

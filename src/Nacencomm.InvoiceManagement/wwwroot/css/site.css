@@ -1,0 +1,197 @@
+/* Nacencomm Invoice Management Custom Styling */
+
+:root {
+    --nacen-primary: #0056b3;
+    --nacen-secondary: #0088cc;
+    --nacen-dark: #1b2a4a;
+    --nacen-light-bg: #f4f6f9;
+    --nacen-sidebar-width: 240px;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--nacen-light-bg);
+    color: #333;
+}
+
+/* Header Navbar */
+.nacen-navbar {
+    background-color: #ffffff;
+    border-bottom: 2px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.nacen-logo {
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: var(--nacen-primary);
+    letter-spacing: -0.5px;
+}
+
+.nacen-nav-link {
+    color: #4a5568;
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.8rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.nacen-nav-link:hover, .nacen-nav-link.active {
+    color: var(--nacen-primary);
+    background-color: #ebf8ff;
+}
+
+/* Sidebar Styling */
+.nacen-sidebar {
+    width: var(--nacen-sidebar-width);
+    background-color: #ffffff;
+    border-right: 1px solid #e2e8f0;
+    min-height: calc(100vh - 60px);
+}
+
+.sidebar-header {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #718096;
+    padding: 0.75rem 1rem 0.25rem 1rem;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-menu-item {
+    display: block;
+    padding: 0.55rem 1rem 0.55rem 1.5rem;
+    font-size: 0.88rem;
+    color: #2d3748;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.sidebar-menu-item:hover {
+    background-color: #f7fafc;
+    color: var(--nacen-primary);
+}
+
+.sidebar-menu-item.active {
+    background-color: #0066cc;
+    color: #ffffff !important;
+    font-weight: 600;
+    border-radius: 0 20px 20px 0;
+}
+
+/* Filter Card */
+.filter-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.filter-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a202c;
+    text-transform: uppercase;
+}
+
+/* Status Tabs */
+.status-subtabs {
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.nav-tab-status {
+    color: #4a5568;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+}
+
+.nav-tab-status:hover {
+    color: var(--nacen-primary);
+}
+
+.nav-tab-status.active {
+    color: var(--nacen-primary);
+    border-bottom-color: var(--nacen-primary);
+}
+
+/* Invoice Data Table */
+.invoice-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px !important;
+}
+
+.invoice-table th,
+.invoice-table td,
+.invoice-table input,
+.invoice-table select,
+.invoice-table a,
+.invoice-table button,
+.invoice-table .small,
+.invoice-table small {
+    font-size: 14px !important;
+}
+
+.invoice-table th {
+    background-color: #0056b3;
+    color: #ffffff;
+    font-weight: 600;
+    text-align: center;
+    vertical-align: middle;
+    padding: 0.65rem;
+    border: none;
+}
+
+.invoice-table td {
+    vertical-align: middle;
+    padding: 0.65rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.invoice-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Batch Toolbar */
+.batch-toolbar {
+    background-color: #edf2f7;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+}
+
+.selection-badge {
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 0.35rem 0.7rem;
+    border-radius: 20px;
+}
+
+/* Modals */
+.modal-header-nacen {
+    background-color: var(--nacen-primary);
+    color: #ffffff;
+}
+
+.progress-height {
+    height: 22px;
+    border-radius: 11px;
+}
+
+/* Custom Teal Sign Button (#009688) */
+.btn-teal-sign {
+    background-color: #009688 !important;
+    border-color: #009688 !important;
+    color: #ffffff !important;
+}
+
+.btn-teal-sign:hover, .btn-teal-sign:focus, .btn-teal-sign:active {
+    background-color: #00796b !important;
+    border-color: #00796b !important;
+    color: #ffffff !important;
+}

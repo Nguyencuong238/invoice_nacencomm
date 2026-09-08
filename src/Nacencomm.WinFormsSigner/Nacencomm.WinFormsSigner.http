@@ -1,0 +1,6 @@
+@Nacencomm.WinFormsSigner_HostAddress = http://localhost:5262
+
+GET {{Nacencomm.WinFormsSigner_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

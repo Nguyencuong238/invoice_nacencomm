@@ -1,0 +1,126 @@
+@model IReadOnlyList<Nacencomm.InvoiceManagement.Models.Invoice>
+@{
+    ViewData["Title"] = "Quản lý Hóa đơn";
+    var filter = ViewBag.Filter as Nacencomm.InvoiceManagement.Models.InvoiceFilter ?? new Nacencomm.InvoiceManagement.Models.InvoiceFilter();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="filter-title mb-0 text-primary fw-bold">
+        <i class="bi bi-receipt-cutoff me-2"></i>QUẢN LÝ HÓA ĐƠN
+    </h4>
+</div>
+
+<!-- Filter Panel matching Screenshot -->
+<div class="filter-card p-3 mb-4">
+    <form id="invoiceFilterForm" method="get" onsubmit="event.preventDefault(); filterInvoicesAjax();">
+        <input type="hidden" id="hiddenTabStatus" name="TabStatus" value="@filter.TabStatus" />
+        <input type="hidden" id="hiddenSubTabStatus" name="SubTabStatus" value="@filter.SubTabStatus" />
+
+        <div class="row g-3">
+            <!-- Row 1: Dropdowns -->
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold text-secondary">Đơn vị</label>
+                <select name="CompanyUnit" class="form-select form-select-sm" onchange="filterInvoicesAjax()">
+                    <option value="Công ty cổ phần công nghệ thẻ NACENCOMM1" selected>Công ty cổ phần công nghệ thẻ NACENCOMM1</option>
+                    <option value="Tất cả">--- Tất cả đơn vị ---</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold text-secondary">Loại hóa đơn</label>
+                <select name="InvoiceType" class="form-select form-select-sm" onchange="filterInvoicesAjax()">
+                    <option value="Hóa đơn giá trị gia tăng" selected>Hóa đơn giá trị gia tăng</option>
+                    <option value="Tất cả">--- Tất cả loại hóa đơn ---</option>
+                </select>
+            </div>
+
+            <!-- Row 2: Pattern & Series Symbol -->
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold text-secondary">Ký hiệu mẫu số hóa đơn</label>
+                <select name="PatternSymbol" class="form-select form-select-sm" onchange="filterInvoicesAjax()">
+                    <option value="1" selected>1</option>
+                    <option value="Tất cả">--- Tất cả ---</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold text-secondary">Ký hiệu hóa đơn</label>
+                <select name="InvoiceSymbol" class="form-select form-select-sm" onchange="filterInvoicesAjax()">
+                    <option value="C26MQT" selected>C26MQT</option>
+                    <option value="Tất cả">--- Tất cả ---</option>
+                </select>
+            </div>
+
+            <!-- Row 3: Search Radios & Dates -->
+            <div class="col-md-6">
+                <div class="d-flex gap-3 mb-2 small fw-semibold text-secondary">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="SearchBy" id="searchByDate" value="Date" checked>
+                        <label class="form-check-label" for="searchByDate">Ngày xuất hóa đơn</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="SearchBy" id="searchByNumber" value="Number">
+                        <label class="form-check-label" for="searchByNumber">Số hóa đơn</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="SearchBy" id="searchByLookup" value="LookupCode">
+                        <label class="form-check-label" for="searchByLookup">Mã tra cứu</label>
+                    </div>
+                </div>
+                <div class="row g-2 align-items-center">
+                    <div class="col-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">Từ ngày:</span>
+                            <input type="date" name="FromDate" class="form-control" value="2026-03-02" onchange="filterInvoicesAjax()" />
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">Đến ngày:</span>
+                            <input type="date" name="ToDate" class="form-control" value="2026-09-08" onchange="filterInvoicesAjax()" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="col-md-6 d-flex align-items-end justify-content-end gap-2">
+                <button type="submit" class="btn btn-sm btn-primary px-4 fw-bold shadow-sm" style="background-color: #0066cc; border-color: #0066cc;">
+                    <i class="bi bi-search me-1"></i> XUẤT DANH SÁCH
+                </button>
+                <a href="#" class="btn btn-sm btn-primary px-4 fw-bold shadow-sm" style="background-color: #0066cc; border-color: #0066cc;">
+                    <i class="bi bi-plus-circle me-1"></i> LẬP MỚI
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Tabs Cấp 1 -->
+<div class="status-subtabs d-flex gap-4 mb-2 border-bottom pb-1">
+    <a href="#" class="nav-tab-status @(filter.TabStatus == "DRAFT" || string.IsNullOrEmpty(filter.TabStatus) ? "active fw-bold text-teal border-bottom border-3 border-teal" : "text-secondary")" data-tab="DRAFT">
+        HÓA ĐƠN NHÁP
+    </a>
+    <a href="#" class="nav-tab-status @(filter.TabStatus == "ISSUED" ? "active fw-bold text-teal border-bottom border-3 border-teal" : "text-secondary")" data-tab="ISSUED">
+        HÓA ĐƠN ĐÃ PHÁT HÀNH
+    </a>
+    <a href="#" class="nav-tab-status @(filter.TabStatus == "POS" ? "active fw-bold text-teal border-bottom border-3 border-teal" : "text-secondary")" data-tab="POS">
+        HĐ KHỞI TẠO TỪ MÁY TÍNH TIỀN
+    </a>
+</div>
+
+<!-- Sub-tabs Cấp 2 (Chỉ hiển thị ở Tab Máy Tính Tiền) -->
+<div id="posSubTabsContainer" class="d-flex gap-2 mb-3 @(filter.TabStatus == "POS" ? "" : "d-none")">
+    <button type="button" class="btn btn-sm pos-subtab-btn @(filter.SubTabStatus == "NEW" || filter.SubTabStatus == "ALL" || string.IsNullOrEmpty(filter.SubTabStatus) ? "btn-primary text-white" : "btn-outline-primary bg-white")" data-subtab="NEW" style="border-radius: 0; min-width: 120px;">
+        MỚI TẠO
+    </button>
+    <button type="button" class="btn btn-sm pos-subtab-btn @(filter.SubTabStatus == "SENT_CQT" ? "btn-primary text-white" : "btn-outline-primary bg-white")" data-subtab="SENT_CQT" style="border-radius: 0; min-width: 160px;">
+        ĐÃ GỬI CƠ QUAN THUẾ
+    </button>
+</div>
+
+<!-- Dynamic Invoice Table Container -->
+<div id="invoiceTableContainer">
+    @await Html.PartialAsync("_InvoiceTablePartial", Model)
+</div>
+
+<!-- Render Signing Modal -->
+@await Html.PartialAsync("_SigningModal")

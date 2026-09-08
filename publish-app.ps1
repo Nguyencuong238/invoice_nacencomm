@@ -1,6 +1,6 @@
 # PowerShell script to publish Nacencomm WinForms Signer application
 param (
-    [string]$PublishType = "SingleFile", # Options: SingleFile, Zip, ClickOnce
+    [string]$PublishType = "ClickOncePackage", # Options: ClickOncePackage, SingleFile
     [string]$OutputDir = "./publish"
 )
 
@@ -8,47 +8,16 @@ Write-Host "=================================================" -ForegroundColor 
 Write-Host " Nacencomm WinForms Signer Publishing Tool" -ForegroundColor Cyan
 Write-Host "=================================================" -ForegroundColor Cyan
 
-if ($PublishType -eq "SingleFile") {
-    Write-Host "[1/2] Building Single-File Standalone Executable..." -ForegroundColor Yellow
-    dotnet publish src/Nacencomm.WinFormsSigner/Nacencomm.WinFormsSigner.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o $OutputDir
+$clickonceDir = "$OutputDir/Nacencomm.WinFormsSigner"
+if (Test-Path $clickonceDir) { Remove-Item -Recurse -Force $clickonceDir }
+New-Item -ItemType Directory -Path $clickonceDir -Force | Out-Null
 
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "`n[SUCCESS] Single-File EXE generated at: $OutputDir/Nacencomm.WinFormsSigner.exe" -ForegroundColor Green
-        Write-Host "Ready to upload to Web Server for 1-click download!" -ForegroundColor Green
-    } else {
-        Write-Host "`n[ERROR] Build failed. Please check logs above." -ForegroundColor Red
-    }
-} elseif ($PublishType -eq "Zip") {
-    $tempDir = "./publish_temp"
-    Write-Host "[1/3] Building application files..." -ForegroundColor Yellow
-    dotnet publish src/Nacencomm.WinFormsSigner/Nacencomm.WinFormsSigner.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o $tempDir
+Write-Host "[1/3] Building WinForms application binaries..." -ForegroundColor Yellow
+dotnet publish src/Nacencomm.WinFormsSigner/Nacencomm.WinFormsSigner.csproj -c Release -o $clickonceDir
 
-    Write-Host "[2/3] Adding auto-launch script (MoAppKeySo.bat)..." -ForegroundColor Yellow
-    $batContent = @"
-@echo off
-echo Running Nacencomm WinForms Signer...
-powershell -Command "Unblock-File -Path '%~dp0Nacencomm.WinFormsSigner.exe'"
-start "" "%~dp0Nacencomm.WinFormsSigner.exe"
-"@
-    Set-Content -Path "$tempDir/MoAppKeySo.bat" -Value $batContent -Encoding UTF8
+Write-Host "[2/3] Generating ClickOnce Manifest files (.application & .manifest)..." -ForegroundColor Yellow
 
-    Write-Host "[3/3] Compressing into ZIP package..." -ForegroundColor Yellow
-    if (!(Test-Path $OutputDir)) { New-Item -ItemType Directory -Path $OutputDir }
-    Compress-Archive -Path "$tempDir/*" -DestinationPath "$OutputDir/Nacencomm.WinFormsSigner.zip" -Force
-    Remove-Item -Recurse -Force $tempDir
-
-    Write-Host "`n[SUCCESS] ZIP package generated at: $OutputDir/Nacencomm.WinFormsSigner.zip" -ForegroundColor Green
-    Write-Host "Customers can extract and run MoAppKeySo.bat without Windows Defender blocks!" -ForegroundColor Green
-} elseif ($PublishType -eq "ClickOnce") {
-    Write-Host "[1/3] Building ClickOnce application binaries..." -ForegroundColor Yellow
-    $clickonceDir = "$OutputDir/clickonce"
-    if (!(Test-Path $clickonceDir)) { New-Item -ItemType Directory -Path $clickonceDir -Force }
-
-    dotnet publish src/Nacencomm.WinFormsSigner/Nacencomm.WinFormsSigner.csproj -c Release -o $clickonceDir
-
-    Write-Host "[2/3] Generating ClickOnce Manifest files (.application & .manifest)..." -ForegroundColor Yellow
-    
-    $manifestXml = @"
+$manifestXml = @"
 <?xml version="1.0" encoding="utf-8"?>
 <asmv1:assembly xsi:schemaLocation="urn:schemas-microsoft-com:asm.v1 assembly.adaptive.xsd" manifestVersion="1.0" xmlns:asmv1="urn:schemas-microsoft-com:asm.v1" xmlns="urn:schemas-microsoft-com:asm.v2" xmlns:asmv2="urn:schemas-microsoft-com:asm.v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:co.v1="urn:schemas-microsoft-com:clickonce.v1" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" xmlns:co.v2="urn:schemas-microsoft-com:clickonce.v2">
   <asmv1:assemblyIdentity name="Nacencomm.WinFormsSigner.exe" version="1.0.0.0" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" type="win32" />
@@ -69,9 +38,9 @@ start "" "%~dp0Nacencomm.WinFormsSigner.exe"
   </trustInfo>
 </asmv1:assembly>
 "@
-    Set-Content -Path "$clickonceDir/Nacencomm.WinFormsSigner.exe.manifest" -Value $manifestXml -Encoding UTF8
+Set-Content -Path "$clickonceDir/Nacencomm.WinFormsSigner.exe.manifest" -Value $manifestXml -Encoding UTF8
 
-    $appXml = @"
+$appXml = @"
 <?xml version="1.0" encoding="utf-8"?>
 <asmv1:assembly xsi:schemaLocation="urn:schemas-microsoft-com:asm.v1 assembly.adaptive.xsd" manifestVersion="1.0" xmlns:asmv1="urn:schemas-microsoft-com:asm.v1" xmlns="urn:schemas-microsoft-com:asm.v2" xmlns:asmv2="urn:schemas-microsoft-com:asm.v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:co.v1="urn:schemas-microsoft-com:clickonce.v1" xmlns:co.v2="urn:schemas-microsoft-com:clickonce.v2">
   <assemblyIdentity name="Nacencomm.WinFormsSigner.application" version="1.0.0.0" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" />
@@ -84,13 +53,27 @@ start "" "%~dp0Nacencomm.WinFormsSigner.exe"
   </dependency>
 </asmv1:assembly>
 "@
-    Set-Content -Path "$clickonceDir/Nacencomm.WinFormsSigner.application" -Value $appXml -Encoding UTF8
+Set-Content -Path "$clickonceDir/Nacencomm.WinFormsSigner.application" -Value $appXml -Encoding UTF8
 
-    # Create app.publish directory like reference package
-    $appPublishDir = "$clickonceDir/app.publish"
-    if (!(Test-Path $appPublishDir)) { New-Item -ItemType Directory -Path $appPublishDir -Force }
-    Copy-Item -Path "$clickonceDir/Nacencomm.WinFormsSigner.exe" -Destination "$appPublishDir/Nacencomm.WinFormsSigner.exe" -Force
+$configXml = @"
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <startup>
+    <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.5"/>
+  </startup>
+</configuration>
+"@
+Set-Content -Path "$clickonceDir/Nacencomm.WinFormsSigner.exe.config" -Value $configXml -Encoding UTF8
 
-    Write-Host "`n[SUCCESS] ClickOnce package generated at: $clickonceDir" -ForegroundColor Green
-    Write-Host "Contains .application, .manifest, .exe, and app.publish structure matching reference package!" -ForegroundColor Green
-}
+# Create app.publish directory like reference package
+$appPublishDir = "$clickonceDir/app.publish"
+if (!(Test-Path $appPublishDir)) { New-Item -ItemType Directory -Path $appPublishDir -Force }
+Copy-Item -Path "$clickonceDir/Nacencomm.WinFormsSigner.exe" -Destination "$appPublishDir/Nacencomm.WinFormsSigner.exe" -Force
+
+Write-Host "[3/3] Packing full package (.application, .manifest, .config, .exe, app.publish) into ZIP..." -ForegroundColor Yellow
+$zipPath = "$OutputDir/Nacencomm.WinFormsSigner.zip"
+if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
+Compress-Archive -Path "$clickonceDir" -DestinationPath $zipPath -Force
+
+Write-Host "`n[SUCCESS] Package generated at: $zipPath" -ForegroundColor Green
+Write-Host "Unzipping this package reveals the exact set of files matching the reference sample!" -ForegroundColor Green

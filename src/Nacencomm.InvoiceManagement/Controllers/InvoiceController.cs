@@ -40,6 +40,34 @@ namespace Nacencomm.InvoiceManagement.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetPreview(long id)
+        {
+            try
+            {
+                var invoice = await _invoiceService.GetInvoiceDetailAsync(id);
+                return PartialView("_InvoicePreviewModal", invoice);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, error = SigningErrorCodes.GET_XML_FAILED, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetDetailJson(long id)
+        {
+            try
+            {
+                var invoice = await _invoiceService.GetInvoiceDetailAsync(id);
+                return Json(new { success = true, data = invoice });
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { success = false, error = SigningErrorCodes.GET_XML_FAILED, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
         public async Task<IActionResult> GetXml(long id)
         {
             try
@@ -56,7 +84,7 @@ namespace Nacencomm.InvoiceManagement.Controllers
             }
             catch (Exception ex)
             {
-                return NotFound(new { error = SigningErrorCodes.BUSINESS_ERROR, message = ex.Message });
+                return NotFound(new { error = SigningErrorCodes.GET_XML_FAILED, message = ex.Message });
             }
         }
 

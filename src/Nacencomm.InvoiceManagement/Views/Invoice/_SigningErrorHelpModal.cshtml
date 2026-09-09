@@ -1,0 +1,103 @@
+<div class="modal fade" id="signingErrorHelpModal" tabindex="-1" aria-labelledby="signingErrorHelpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content shadow">
+            <div class="modal-header bg-danger text-white py-2 px-3">
+                <h5 class="modal-title fs-6 fw-bold mb-0" id="signingErrorHelpModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>CHI TIẾT MÃ LỖI KÝ SỐ HÓA ĐƠN & NGUYÊN NHÂN
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert alert-warning mb-3 small d-flex align-items-center gap-2">
+                    <i class="bi bi-info-circle-fill fs-5 flex-shrink-0"></i>
+                    <div>
+                        <strong>Mã lỗi hiện tại:</strong> <code id="helpModalErrorCode" class="fw-bold fs-6">GET_XML_FAILED</code><br/>
+                        <span id="helpModalErrorMessage" class="text-dark">Không lấy được XML hóa đơn từ server.</span>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">DANH MỤC CÁC MÃ LỖI KÝ SỐ THƯỜNG GẶP:</h6>
+
+                <div class="accordion accordion-flush" id="signingErrorsAccordion">
+                    <!-- 1. GET_XML_FAILED -->
+                    <div class="accordion-item border rounded mb-2">
+                        <h2 class="accordion-header" id="headingGetXml">
+                            <button class="accordion-button collapsed py-2 fw-semibold text-danger" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGetXml">
+                                <span class="badge bg-danger me-2">GET_XML_FAILED</span> Không lấy được XML hóa đơn từ server
+                            </button>
+                        </h2>
+                        <div id="collapseGetXml" class="accordion-collapse collapse" data-bs-parent="#signingErrorsAccordion">
+                            <div class="accordion-body small bg-light text-secondary">
+                                <strong>Nguyên nhân:</strong> Hóa đơn không tồn tại trên hệ thống, kết nối mạng tới server bị gián đoạn, hoặc XML dữ liệu bị lỗi/chưa khởi tạo.<br/>
+                                <strong>Cách khắc phục:</strong> Kiểm tra kết nối mạng server, kiểm tra dữ liệu hóa đơn nháp và chọn thử lại.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. SIGNER_NOT_RUNNING -->
+                    <div class="accordion-item border rounded mb-2">
+                        <h2 class="accordion-header" id="headingSignerRunning">
+                            <button class="accordion-button collapsed py-2 fw-semibold text-warning text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSignerRunning">
+                                <span class="badge bg-warning text-dark me-2">SIGNER_NOT_RUNNING</span> Không kết nối được WinForms Signer
+                            </button>
+                        </h2>
+                        <div id="collapseSignerRunning" class="accordion-collapse collapse" data-bs-parent="#signingErrorsAccordion">
+                            <div class="accordion-body small bg-light text-secondary">
+                                <strong>Nguyên nhân:</strong> Ứng dụng WinForms local (`E-invoiceCA2.exe`) chưa bật trên máy trạm tại địa chỉ `http://127.0.0.1:8765`.<br/>
+                                <strong>Cách khắc phục:</strong> Chạy ứng dụng WinForms Chữ ký số trên máy trạm hoặc bật "Chế độ Giả lập (Mock Mode)" ở góc trên bên phải màn hình Web để kiểm thử.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. TOKEN_NOT_AVAILABLE / CERTIFICATE_NOT_FOUND -->
+                    <div class="accordion-item border rounded mb-2">
+                        <h2 class="accordion-header" id="headingToken">
+                            <button class="accordion-button collapsed py-2 fw-semibold text-danger" type="button" data-bs-toggle="collapse" data-bs-target="#collapseToken">
+                                <span class="badge bg-danger me-2">TOKEN_NOT_AVAILABLE</span> Rút USB Token / Không tìm thấy Chữ ký số
+                            </button>
+                        </h2>
+                        <div id="collapseToken" class="accordion-collapse collapse" data-bs-parent="#signingErrorsAccordion">
+                            <div class="accordion-body small bg-light text-secondary">
+                                <strong>Nguyên nhân:</strong> USB Token CA2 chưa cắm vào máy tính, bị lỏng hoặc driver Token chưa được nhận.<br/>
+                                <strong>Cách khắc phục:</strong> Cắm lại USB Token CA2, kiểm tra phần mềm Token Manager đã nhận Chứng thư số.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. INVALID_XML -->
+                    <div class="accordion-item border rounded mb-2">
+                        <h2 class="accordion-header" id="headingInvalidXml">
+                            <button class="accordion-button collapsed py-2 fw-semibold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInvalidXml">
+                                <span class="badge bg-secondary me-2">INVALID_XML</span> XML hóa đơn không hợp lệ
+                            </button>
+                        </h2>
+                        <div id="collapseInvalidXml" class="accordion-collapse collapse" data-bs-parent="#signingErrorsAccordion">
+                            <div class="accordion-body small bg-light text-secondary">
+                                <strong>Nguyên nhân:</strong> Cấu trúc XML hóa đơn bị lỗi, thiếu thẻ bắt buộc hoặc chứa mã độc DTD/XXE bị hệ thống chặn bảo mật.<br/>
+                                <strong>Cách khắc phục:</strong> Mở hóa đơn kiểm tra lại thông tin người mua, danh mục hàng hóa và lập lại hóa đơn mới.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. SIGN_FAILED -->
+                    <div class="accordion-item border rounded mb-2">
+                        <h2 class="accordion-header" id="headingSignFailed">
+                            <button class="accordion-button collapsed py-2 fw-semibold text-danger" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSignFailed">
+                                <span class="badge bg-danger me-2">SIGN_FAILED</span> Thất bại trong quá trình ký số
+                            </button>
+                        </h2>
+                        <div id="collapseSignFailed" class="accordion-collapse collapse" data-bs-parent="#signingErrorsAccordion">
+                            <div class="accordion-body small bg-light text-secondary">
+                                <strong>Nguyên nhân:</strong> Nhập sai mã PIN USB Token, người dùng bấm Hủy hộp thoại PIN, hoặc lỗi thư viện CSP/KSP.<br/>
+                                <strong>Cách khắc phục:</strong> Nhập đúng mã PIN của USB Token CA2 khi hộp thoại xuất hiện.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2 px-3 bg-light">
+                <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,265 @@
+@model Nacencomm.InvoiceManagement.Models.Invoice
+@{
+    decimal totalAmount = Model?.TotalAmount ?? 0;
+    decimal taxAmount = Math.Round(totalAmount * 0.1m / 1.1m);
+    decimal amountWithoutVat = totalAmount - taxAmount;
+}
+
+<div class="modal fade" id="invoicePreviewModal" tabindex="-1" aria-labelledby="invoicePreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content shadow-lg border-0">
+            <!-- Modal Header -->
+            <div class="modal-header bg-light py-2 px-3 border-bottom">
+                <div class="d-flex align-items-center gap-3">
+                    <img src="/logonew.png" alt="Nacencomm Logo" style="height: 32px;" onerror="this.style.display='none'" />
+                    <h5 class="modal-title fw-bold text-dark mb-0" id="invoicePreviewModalLabel" style="font-family: Arial, sans-serif; letter-spacing: 0.5px;">
+                        THÔNG TIN HÓA ĐƠN
+                    </h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body p-4 bg-light">
+                <div class="row g-4">
+                    <!-- Left Functions Sidebar -->
+                    <div class="col-md-3 col-lg-2">
+                        <div class="card border-0 shadow-sm rounded p-3 bg-white">
+                            <h6 class="fw-bold text-primary mb-3 text-uppercase border-bottom pb-2" style="font-size: 13px;">
+                                <i class="bi bi-chevron-down me-1"></i>CHỨC NĂNG
+                            </h6>
+                            <ul class="list-unstyled mb-0 d-flex flex-column gap-2 small">
+                                <li>
+                                    <a href="/Invoice/GetXml?id=@Model?.Id" target="_blank" class="text-decoration-none text-dark d-flex align-items-center gap-2 hover-blue">
+                                        <i class="bi bi-download text-secondary"></i> Tải về
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" onclick="printInvoicePreview(); return false;" class="text-decoration-none text-dark d-flex align-items-center gap-2 hover-blue">
+                                        <i class="bi bi-printer text-secondary"></i> In hóa đơn
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" onclick="downloadInvoicePdf(); return false;" class="text-decoration-none text-dark d-flex align-items-center gap-2 hover-blue">
+                                        <i class="bi bi-file-earmark-pdf text-secondary"></i> Tải PDF hóa đơn
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" onclick="downloadInvoicePdf(); return false;" class="text-decoration-none text-dark d-flex align-items-center gap-2 hover-blue">
+                                        <i class="bi bi-file-earmark-arrow-down text-secondary"></i> Tải PDF in chuyển đổi
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Main Invoice Visual Sheet (Matching xem-truoc-hoa-don.png) -->
+                    <div class="col-md-9 col-lg-10">
+                        <div id="printableInvoiceArea" class="bg-white p-4 mx-auto rounded shadow-sm border" style="max-width: 850px; font-family: 'Times New Roman', Times, serif; color: #000; border: 1px solid #1760a5 !important;">
+                            <!-- Outer Decorative Frame -->
+                            <div class="p-3" style="border: 2px solid #1760a5; outline: 1px solid #1760a5; outline-offset: 3px;">
+                                
+                                <!-- Document Header -->
+                                <div class="text-center mb-3 position-relative">
+                                    <div class="row align-items-start">
+                                        <div class="col-8 text-center pt-2">
+                                            <h4 class="fw-bold mb-1 text-uppercase" style="letter-spacing: 1px; color: #000;">
+                                                HOÁ ĐƠN GIÁ TRỊ GIA TĂNG
+                                            </h4>
+                                            <div class="fw-bold mb-2" style="font-size: 14px;">(VAT INVOICE)</div>
+                                            <div class="fst-italic small mb-1">
+                                                Ngày (Date) @(Model?.InvoiceDate.ToString("dd") ?? "06") tháng (month) @(Model?.InvoiceDate.ToString("MM") ?? "08") năm (year) @(Model?.InvoiceDate.ToString("yyyy") ?? "2026")
+                                            </div>
+                                            <div class="fw-bold small text-uppercase">
+                                                MÃ CQT CẤP: <span class="fw-normal">@(string.IsNullOrEmpty(Model?.TaxAuthorityCode) ? "0" : Model.TaxAuthorityCode)</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end small">
+                                            <div>Mẫu số <i>(Form)</i>: <strong>@(Model?.PatternSymbol ?? "1")</strong></div>
+                                            <div>Ký hiệu <i>(Serial No)</i>: <strong>@(Model?.InvoiceSymbol ?? "C26MQT")</strong></div>
+                                            <div class="mt-2 fs-6">Số <i>(No)</i>: <strong class="text-danger">@(Model?.InvoiceNumber.PadLeft(7, '0') ?? "0000000")</strong></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr style="border-top: 1px solid #000; margin: 10px 0;" />
+
+                                <!-- Seller Information -->
+                                <div class="mb-2 small">
+                                    <div class="row mb-1">
+                                        <div class="col-4 text-nowrap">Đơn vị bán hàng <i>(Seller)</i>:</div>
+                                        <div class="col-8 fw-bold text-uppercase">@(Model?.CompanyUnit ?? "CÔNG TY CỔ PHẦN CÔNG NGHỆ THẺ NACENCOMM1")</div>
+                                    </div>
+                                    <div class="row mb-1">
+                                        <div class="col-4 text-nowrap">Mã số thuế <i>(Tax code)</i>:</div>
+                                        <div class="col-8 fw-bold tracking-wide">@(Model?.SellerTaxCode ?? "0 1 0 3 9 3 0 2 7 9 - 9 9 9")</div>
+                                    </div>
+                                    <div class="row mb-1">
+                                        <div class="col-4 text-nowrap">Địa chỉ <i>(Address)</i>:</div>
+                                        <div class="col-8">@(Model?.SellerAddress ?? "Tòa nhà BOHEMIA số 25, Lê Văn Thiêm, Thanh Xuân, Hà Nội, Việt Nam")</div>
+                                    </div>
+                                    <div class="row mb-1">
+                                        <div class="col-4 text-nowrap">Số tài khoản <i>(Account No)</i>:</div>
+                                        <div class="col-8">@(Model?.SellerBankAccount ?? "22222222341 Tại: Ngân hàng Tiên phong bank- chi nhánh hà thành")</div>
+                                    </div>
+                                    <div class="row mb-1">
+                                        <div class="col-4 text-nowrap">Điện thoại <i>(Tel)</i>:</div>
+                                        <div class="col-8">@(Model?.SellerPhone ?? "1900.54.54.07")</div>
+                                    </div>
+                                </div>
+
+                                <hr style="border-top: 1px solid #000; margin: 10px 0;" />
+
+                                <!-- Buyer Information -->
+                                <div class="mb-3 small">
+                                    <div class="row mb-1">
+                                        <div class="col-4 text-nowrap">Họ tên người mua <i>(Customer Name)</i>:</div>
+                                        <div class="col-8">@(string.IsNullOrEmpty(Model?.BuyerCustomerName) ? "Khách MTT" : Model.BuyerCustomerName)</div>
+                                    </div>
+                                    <div class="row mb-1">
+                                        <div class="col-4 text-nowrap">Tên đơn vị <i>(Buyer's name)</i>:</div>
+                                        <div class="col-8 fw-bold">@(Model?.BuyerName ?? "")</div>
+                                    </div>
+                                    <div class="row mb-1">
+                                        <div class="col-4 text-nowrap">Mã số thuế <i>(Tax code)</i>:</div>
+                                        <div class="col-8">@(Model?.BuyerTaxCode ?? "")</div>
+                                    </div>
+                                    <div class="row mb-1">
+                                        <div class="col-4 text-nowrap">Địa chỉ <i>(Address)</i>:</div>
+                                        <div class="col-8">@(Model?.BuyerAddress ?? "")</div>
+                                    </div>
+                                    <div class="row mb-1">
+                                        <div class="col-4 text-nowrap">Số tài khoản <i>(Account No)</i>:</div>
+                                        <div class="col-8">@(Model?.BuyerBankAccount ?? "1244444444 Tại: Chi nhánh ACB")</div>
+                                    </div>
+                                    <div class="row mb-1">
+                                        <div class="col-4 text-nowrap">Hình thức thanh toán <i>(Payment Method)</i>:</div>
+                                        <div class="col-8">@(Model?.PaymentMethod ?? "TM/CK") &nbsp;&nbsp;&nbsp;&nbsp; Số điện thoại <i>(Tel)</i>: @(Model?.BuyerPhone ?? "")</div>
+                                    </div>
+                                    <div class="row mb-1">
+                                        <div class="col-4 text-nowrap">Đồng tiền thanh toán <i>(Payment currency)</i>:</div>
+                                        <div class="col-8">@(Model?.Currency ?? "VND")</div>
+                                    </div>
+                                </div>
+
+                                <!-- Line Items Table -->
+                                <table class="table table-bordered align-middle mb-0 text-center small" style="border: 1px solid #000;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #000;">
+                                            <th style="width: 40px;" class="py-1">STT<br/><i class="fw-normal">(No.)</i></th>
+                                            <th class="py-1">Tên hàng hóa, dịch vụ<br/><i class="fw-normal">(Name of goods and services)</i></th>
+                                            <th style="width: 70px;" class="py-1">ĐVT<br/><i class="fw-normal">(Unit)</i></th>
+                                            <th style="width: 70px;" class="py-1">Số lượng<br/><i class="fw-normal">(Quantity)</i></th>
+                                            <th style="width: 100px;" class="py-1">Đơn giá<br/><i class="fw-normal">(Unit price)</i></th>
+                                            <th style="width: 110px;" class="py-1">Thành tiền<br/><i class="fw-normal">(Total amount)</i></th>
+                                            <th style="width: 90px;" class="py-1">Thuế suất GTGT(%)<br/><i class="fw-normal">(VAT rate %)</i></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model?.LineItems != null && Model.LineItems.Count > 0)
+                                        {
+                                            foreach (var item in Model.LineItems)
+                                            {
+                                                <tr>
+                                                    <td>@item.ItemNo</td>
+                                                    <td class="text-start">@item.ItemName</td>
+                                                    <td>@item.Unit</td>
+                                                    <td>@item.Quantity.ToString("G29")</td>
+                                                    <td class="text-end">@item.UnitPrice.ToString("#,##0")</td>
+                                                    <td class="text-end">@item.Amount.ToString("#,##0")</td>
+                                                    <td>@item.VatRate</td>
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td>1</td>
+                                                <td class="text-start">Hàng Máy tính tiền</td>
+                                                <td>Cái</td>
+                                                <td>1</td>
+                                                <td class="text-end">@amountWithoutVat.ToString("#,##0")</td>
+                                                <td class="text-end">@amountWithoutVat.ToString("#,##0")</td>
+                                                <td>10%</td>
+                                            </tr>
+                                        }
+
+                                        <!-- Filler empty rows to simulate full invoice height -->
+                                        @for (int r = 0; r < 4; r++)
+                                        {
+                                            <tr style="height: 28px;">
+                                                <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+
+                                <!-- Totals Summary -->
+                                <div class="border border-top-0 p-2 small">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Tổng tiền chưa có thuế GTGT <i>(Total amount without VAT)</i>:</span>
+                                        <span class="fw-bold">@amountWithoutVat.ToString("#,##0")</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Tổng thuế <i>(Total tax)</i>: 10%</span>
+                                        <span class="fw-bold">@taxAmount.ToString("#,##0")</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Tổng tiền thuế giá trị gia tăng <i>(Total value added tax)</i>:</span>
+                                        <span class="fw-bold">@taxAmount.ToString("#,##0")</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2 border-top pt-1 fw-bold fs-6">
+                                        <span>Tổng cộng tiền thanh toán <i>(Total payment)</i>:</span>
+                                        <span>@totalAmount.ToString("#,##0")</span>
+                                    </div>
+                                    <div class="fst-italic">
+                                        Số tiền viết bằng chữ <i>(In words)</i>: <strong>@(string.IsNullOrEmpty(Model?.AmountInWords) ? "Năm trăm nghìn đồng ./." : Model.AmountInWords)</strong>
+                                    </div>
+                                </div>
+
+                                <!-- Signatures Block -->
+                                <div class="row text-center mt-4 mb-5 small">
+                                    <div class="col-6">
+                                        <div class="fw-bold">Người mua hàng <i>(Buyer)</i></div>
+                                        <div class="fst-italic text-muted">(Ký, ghi rõ họ tên)</div>
+                                        <div class="fst-italic text-muted small">(Signature and full name)</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="fw-bold">Người bán hàng <i>(Seller)</i></div>
+                                        <div class="fst-italic text-muted">(Ký, ghi rõ họ tên)</div>
+                                        <div class="fst-italic text-muted small">(Signature and full name)</div>
+
+                                        @if (Model?.Status == "ĐÃ KÝ SỐ" || Model?.Status == "Đã ký xác thực")
+                                        {
+                                            <div class="mt-3 p-2 border border-success bg-light rounded d-inline-block text-start" style="font-size: 11px;">
+                                                <div class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> KÝ BỞI: @(Model.CompanyUnit)</div>
+                                                <div class="text-secondary">Ngày ký: @(Model.SignedDate?.ToString("dd/MM/yyyy HH:mm:ss") ?? DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"))</div>
+                                                <div class="text-muted">Mã chứng thư: @(Model.SignerSubject ?? "CA2 NACENCOMM")</div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 pt-3 border-top text-center fst-italic small text-secondary">
+                                    (Cần kiểm tra đối chiếu khi lập, giao, nhận hóa đơn)
+                                </div>
+                            </div>
+
+                            <!-- Footer Digest & Provider note -->
+                            <div class="text-center mt-2 small text-muted" style="font-size: 11px;">
+                                <div>Chuỗi xác thực <i>(Digest Value)</i>: <code>@(Model?.DigestValue ?? "dGVzdERpZ2VzdFZhbHVlMTIzNDU2Nzg5")</code></div>
+                                <div>Giải pháp hóa đơn điện tử được cung cấp bởi: <strong>Công ty cổ phần công nghệ thẻ Nacencomm.</strong> Mã số thuế: <strong>0103930279</strong>.</div>
+                                <div>Tra cứu hóa đơn tại địa chỉ trang web: <a href="https://hoadon78.nacencomm.vn" target="_blank" class="text-decoration-none">https://hoadon78.nacencomm.vn</a></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer bg-light py-2 px-3 border-top">
+                <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -6,10 +6,12 @@ namespace Nacencomm.InvoiceManagement.Models
     public static class SigningErrorCodes
     {
         public const string SIGNER_NOT_RUNNING = "SIGNER_NOT_RUNNING";
+        public const string GET_XML_FAILED = "GET_XML_FAILED";
         public const string CERTIFICATE_NOT_FOUND = "CERTIFICATE_NOT_FOUND";
         public const string CERTIFICATE_EXPIRED = "CERTIFICATE_EXPIRED";
         public const string TOKEN_NOT_AVAILABLE = "TOKEN_NOT_AVAILABLE";
         public const string SIGN_FAILED = "SIGN_FAILED";
+        public const string SUBMIT_FAILED = "SUBMIT_FAILED";
         public const string INVALID_XML = "INVALID_XML";
         public const string BACKEND_TIMEOUT = "BACKEND_TIMEOUT";
         public const string BACKEND_UNAVAILABLE = "BACKEND_UNAVAILABLE";

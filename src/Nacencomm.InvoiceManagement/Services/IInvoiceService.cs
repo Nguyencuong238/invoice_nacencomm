@@ -8,6 +8,7 @@ namespace Nacencomm.InvoiceManagement.Services
     {
         Task<IReadOnlyList<Invoice>> GetInvoicesAsync(InvoiceFilter filter);
         Task<Invoice?> GetByIdAsync(long id);
+        Task<Invoice> GetInvoiceDetailAsync(long id);
         Task<string> GetXmlAsync(long invoiceId);
         Task<bool> UpdateSignedXmlAsync(long invoiceId, string signedXml, string? signerSubject);
         Task<bool> UpdateInvoiceStatusAsync(long invoiceId, string status, string? errorMessage);

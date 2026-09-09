@@ -179,5 +179,31 @@ namespace Nacencomm.InvoiceManagement.Tests
             Assert.Equal(0x50, excelBytes[0]);
             Assert.Equal(0x4B, excelBytes[1]);
         }
+
+        [Fact]
+        public async Task Test_GetInvoiceDetail_ReturnsValidPreviewData()
+        {
+            // Act
+            var invoice = await _invoiceService.GetInvoiceDetailAsync(1);
+
+            // Assert
+            Assert.NotNull(invoice);
+            Assert.Equal(1, invoice.Id);
+            Assert.NotEmpty(invoice.LineItems);
+            Assert.False(string.IsNullOrEmpty(invoice.AmountInWords));
+            Assert.Equal("CÔNG TY CỔ PHẦN CÔNG NGHỆ THẺ NACENCOMM1", invoice.CompanyUnit, ignoreCase: true);
+        }
+
+        [Fact]
+        public async Task Test_GetXml_NonExistentInvoice_ThrowsKeyNotFoundException()
+        {
+            // Arrange: Invalid invoice ID
+            long badId = 999999;
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() => _invoiceService.GetXmlAsync(badId));
+            Assert.Contains("Không lấy được XML hóa đơn từ server", ex.Message);
+        }
     }
 }
+

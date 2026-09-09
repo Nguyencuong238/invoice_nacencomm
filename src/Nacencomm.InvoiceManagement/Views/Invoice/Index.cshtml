@@ -75,7 +75,7 @@
                     <div class="col-6">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text">Đến ngày:</span>
-                            <input type="date" name="ToDate" class="form-control" value="2026-09-08" onchange="filterInvoicesAjax()" />
+                            <input type="date" name="ToDate" class="form-control" value="2026-12-31" onchange="filterInvoicesAjax()" />
                         </div>
                     </div>
                 </div>
@@ -122,5 +122,9 @@
     @await Html.PartialAsync("_InvoiceTablePartial", Model)
 </div>
 
-<!-- Render Signing Modal -->
+<!-- Dynamic Invoice Preview Modal Container -->
+<div id="invoicePreviewContainer"></div>
+
+<!-- Render Signing Modal & Error Help Modal -->
 @await Html.PartialAsync("_SigningModal")
+@await Html.PartialAsync("_SigningErrorHelpModal")

@@ -285,13 +285,50 @@ namespace Nacencomm.InvoiceManagement.Services
             return Task.FromResult(invoice);
         }
 
+        public Task<Invoice> GetInvoiceDetailAsync(long id)
+        {
+            if (_invoices.TryGetValue(id, out var invoice))
+            {
+                if (invoice.LineItems == null || invoice.LineItems.Count == 0)
+                {
+                    decimal subTotal = invoice.TotalAmount > 0 ? Math.Round(invoice.TotalAmount / 1.1m) : 500000m;
+                    invoice.LineItems = new List<InvoiceLineItem>
+                    {
+                        new InvoiceLineItem
+                        {
+                            ItemNo = 1,
+                            ItemName = "Hàng Máy tính tiền",
+                            Unit = "Cái",
+                            Quantity = 1,
+                            UnitPrice = subTotal,
+                            VatRate = "10%"
+                        }
+                    };
+                }
+                if (string.IsNullOrEmpty(invoice.AmountInWords))
+                {
+                    invoice.AmountInWords = invoice.TotalAmount > 0 ? NumberToWordsVi(invoice.TotalAmount) : "Năm trăm nghìn đồng ./.";
+                }
+                return Task.FromResult(invoice);
+            }
+            throw new KeyNotFoundException($"Không lấy được XML hóa đơn từ server (Mã HĐ #{id}).");
+        }
+
         public Task<string> GetXmlAsync(long invoiceId)
         {
-            if (_invoices.TryGetValue(invoiceId, out var invoice))
+            if (_invoices.TryGetValue(invoiceId, out var invoice) && !string.IsNullOrEmpty(invoice.XmlContent))
             {
                 return Task.FromResult(invoice.XmlContent);
             }
-            throw new KeyNotFoundException($"Invoice #{invoiceId} not found");
+            throw new KeyNotFoundException($"Không lấy được XML hóa đơn từ server (Mã HĐ #{invoiceId}).");
+        }
+
+        private static string NumberToWordsVi(decimal number)
+        {
+            long n = (long)Math.Round(number);
+            if (n == 500000) return "Năm trăm nghìn đồng ./.";
+            if (n == 0) return "Không đồng ./.";
+            return $"{n:N0} đồng ./.";
         }
 
         public Task<bool> UpdateSignedXmlAsync(long invoiceId, string signedXml, string? signerSubject)
@@ -303,6 +340,15 @@ namespace Nacencomm.InvoiceManagement.Services
                 invoice.SignedDate = DateTime.Now;
                 invoice.SignerSubject = signerSubject ?? "CN=NACENCOMM CA2";
                 invoice.ErrorMessage = null;
+
+                if (string.IsNullOrEmpty(invoice.TaxAuthorityCode))
+                {
+                    invoice.TaxAuthorityCode = $"M1-26-ZAMJZ-{1000 + invoiceId:D7}";
+                }
+                if (string.IsNullOrEmpty(invoice.CqtStatusText))
+                {
+                    invoice.CqtStatusText = $"Mã của CQT: {invoice.TaxAuthorityCode}. Hóa đơn hợp lệ.";
+                }
                 return Task.FromResult(true);
             }
             return Task.FromResult(false);

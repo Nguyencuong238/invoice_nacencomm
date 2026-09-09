@@ -144,16 +144,35 @@ else
                         <td class="text-center text-muted">@item.Currency</td>
                         <td class="text-center"><code>@item.LookupCode</code></td>
                         <td class="text-center fst-italic">@item.FormType</td>
-                        <td class="text-center fw-semibold">@item.Status</td>
+                        <td class="text-center fw-semibold">
+                            @if (item.Status == "ĐÃ KÝ SỐ" || item.Status == "Đã ký xác thực")
+                            {
+                                <span class="badge bg-success">@item.Status</span>
+                            }
+                            else if (item.Status == "LỖI KÝ")
+                            {
+                                <span class="badge bg-danger" onclick="showSigningErrorDetails('SIGN_FAILED', '@(item.ErrorMessage ?? "Lỗi ký số tại WinForms client.")'); return false;" style="cursor: pointer;" title="Bấm để xem nguyên nhân & hướng dẫn khắc phục">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>@item.Status
+                                </span>
+                            }
+                            else if (item.Status == "Mới lập" || item.Status == "HÓA ĐƠN NHÁP")
+                            {
+                                <span class="badge bg-secondary">@item.Status</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-primary">@item.Status</span>
+                            }
+                        </td>
                         @if (!isDraftTab)
                         {
                             <td class="text-center small text-truncate" style="max-width: 170px;" title="@item.TaxAuthorityCode">@(item.TaxAuthorityCode ?? "-")</td>
                         }
                         <td class="text-center">
                             <div class="d-flex justify-content-center align-items-center gap-2 small">
-                                <a href="/Invoice/GetXml?id=@item.Id" target="_blank" class="text-decoration-none" style="color: #0088b3;" title="Xem Hóa đơn">Xem</a>
+                                <a href="#" onclick="openInvoicePreviewModal(@item.Id); return false;" class="text-decoration-none fw-bold" style="color: #0088b3;" title="Xem trước Hóa đơn">Xem</a>
                                 
-                                @if (isDraftTab || item.Status == "Mới lập" || item.Status == "HÓA ĐƠN NHÁP")
+                                @if (item.CanBeSigned)
                                 {
                                     <a href="#" class="text-decoration-none ms-1" style="color: #0088b3;" onclick="alert('Mở màn hình sửa hóa đơn nháp'); return false;">
                                         <i class="bi bi-pencil me-1"></i>Sửa
@@ -161,7 +180,7 @@ else
                                     <a href="#" class="text-decoration-none ms-1" style="color: #6c757d;" onclick="alert('Xóa hóa đơn nháp thành công'); return false;">
                                         <i class="bi bi-x-lg me-1"></i>Xóa nháp
                                     </a>
-                                    <a href="#" class="text-decoration-none ms-1" style="color: #0088b3;" onclick="triggerSingleSign(@item.Id); return false;">
+                                    <a href="#" class="text-decoration-none ms-1 btn-sign-single" style="color: #0088b3;" onclick="triggerSingleSign(@item.Id); return false;">
                                         <i class="bi bi-vector-pen me-1"></i>Ký hóa đơn
                                     </a>
                                 }
@@ -187,7 +206,7 @@ else
                                         <i class="bi bi-check-circle me-1"></i>@item.CqtStatusText
                                     </div>
                                     <div class="d-flex align-items-center gap-3 text-secondary small">
-                                        <a href="/Invoice/GetXml?id=@item.Id" target="_blank" class="text-primary text-decoration-none">Xem</a>
+                                        <a href="#" onclick="openInvoicePreviewModal(@item.Id); return false;" class="text-primary text-decoration-none fw-bold">Xem</a>
                                         <a href="#" class="text-secondary text-decoration-none" onclick="alert('Đang chuẩn bị file in chuyển đổi...'); return false;">
                                             <i class="bi bi-printer me-1"></i>In chuyển đổi
                                         </a>

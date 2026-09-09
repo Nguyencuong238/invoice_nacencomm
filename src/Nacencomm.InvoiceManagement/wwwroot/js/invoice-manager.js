@@ -109,7 +109,8 @@ function initInvoiceEvents() {
             this.classList.add('active', 'fw-bold', 'text-teal', 'border-bottom', 'border-3', 'border-teal');
 
             const tabValue = this.getAttribute('data-tab');
-            document.getElementById('hiddenTabStatus').value = tabValue;
+            const hiddenTab = document.getElementById('hiddenTabStatus');
+            if (hiddenTab) hiddenTab.value = tabValue;
 
             const posSubTabsContainer = document.getElementById('posSubTabsContainer');
             if (posSubTabsContainer) {
@@ -137,7 +138,8 @@ function initInvoiceEvents() {
             this.classList.add('btn-primary', 'text-white');
 
             const subtabVal = this.getAttribute('data-subtab');
-            document.getElementById('hiddenSubTabStatus').value = subtabVal;
+            const hiddenSubTab = document.getElementById('hiddenSubTabStatus');
+            if (hiddenSubTab) hiddenSubTab.value = subtabVal;
             filterInvoicesAjax();
         });
     });
@@ -251,21 +253,50 @@ function openSigningModal(selectedIds) {
     const modalElem = document.getElementById('signingProgressModal');
     if (!modalElem) return;
 
-    const bsModal = new bootstrap.Modal(modalElem, { backdrop: 'static', keyboard: false });
+    let bsModal = bootstrap.Modal.getInstance(modalElem);
+    if (!bsModal) {
+        bsModal = new bootstrap.Modal(modalElem, { backdrop: 'static', keyboard: false });
+    }
 
-    // Reset Modal UI
-    document.getElementById('modalTotalCount').textContent = selectedIds.length;
-    document.getElementById('modalCompletedCount').textContent = '0';
-    document.getElementById('modalSuccessCount').textContent = '0';
-    document.getElementById('modalFailedCount').textContent = '0';
-    document.getElementById('modalProgressBar').style.width = '0%';
-    document.getElementById('modalProgressBar').textContent = '0%';
-    document.getElementById('modalStatusText').textContent = 'Đang khởi tạo Job ký...';
-    document.getElementById('btnCancelSigning').disabled = false;
-    document.getElementById('btnCloseSigningModal').disabled = true;
+    // Reset Modal UI safely
+    const totalCountElem = document.getElementById('modalTotalCount');
+    const completedCountElem = document.getElementById('modalCompletedCount');
+    const successCountElem = document.getElementById('modalSuccessCount');
+    const failedCountElem = document.getElementById('modalFailedCount');
+    const progressBarElem = document.getElementById('modalProgressBar');
+    const statusTextElem = document.getElementById('modalStatusText');
+    const cancelBtnElem = document.getElementById('btnCancelSigning');
+    const closeBtnElem = document.getElementById('btnCloseSigningModal');
+    const closeHeaderBtnElem = document.getElementById('btnCloseSigningModalHeader');
+
+    if (totalCountElem) totalCountElem.textContent = selectedIds.length;
+    if (completedCountElem) completedCountElem.textContent = '0';
+    if (successCountElem) successCountElem.textContent = '0';
+    if (failedCountElem) failedCountElem.textContent = '0';
+    if (progressBarElem) {
+        progressBarElem.style.width = '0%';
+        progressBarElem.textContent = '0%';
+    }
+    if (statusTextElem) statusTextElem.textContent = 'Đang khởi tạo Job ký...';
+
+    // Show Cancel button, disable Close buttons while signing is active
+    if (cancelBtnElem) {
+        cancelBtnElem.classList.remove('d-none');
+        cancelBtnElem.disabled = false;
+    }
+    if (closeBtnElem) closeBtnElem.disabled = true;
+    if (closeHeaderBtnElem) closeHeaderBtnElem.disabled = true;
+
+    const closeModal = function () {
+        if (bsModal) bsModal.hide();
+    };
+    if (closeBtnElem) closeBtnElem.onclick = closeModal;
+    if (closeHeaderBtnElem) closeHeaderBtnElem.onclick = closeModal;
 
     const itemsTbody = document.getElementById('signingModalItemsTbody');
-    itemsTbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm me-2"></div>Đang tải thông tin chi tiết hóa đơn...</td></tr>`;
+    if (itemsTbody) {
+        itemsTbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm me-2"></div>Đang tải thông tin chi tiết hóa đơn...</td></tr>`;
+    }
 
     bsModal.show();
 
@@ -273,21 +304,32 @@ function openSigningModal(selectedIds) {
     SigningQueue.startJob(selectedIds, {
         onJobCreated: function (job) {
             renderModalItemsTable(job.items);
-            document.getElementById('modalStatusText').textContent = `Đang xử lý ký ${job.total} hóa đơn (Sắp xếp theo Ngày xuất ASC)...`;
+            const statusText = document.getElementById('modalStatusText');
+            if (statusText) {
+                statusText.textContent = `Đang xử lý ký ${job.total} hóa đơn (Sắp xếp theo Ngày xuất ASC)...`;
+            }
         },
         onItemStatusChange: function (item, job) {
             updateModalProgressUI(item, job);
         },
         onFinished: function (job, isCompleted, errorCode) {
-            document.getElementById('btnCancelSigning').disabled = true;
-            document.getElementById('btnCloseSigningModal').disabled = false;
+            const cancelBtn = document.getElementById('btnCancelSigning');
+            const closeBtn = document.getElementById('btnCloseSigningModal');
+            const closeHeaderBtn = document.getElementById('btnCloseSigningModalHeader');
+            const statusText = document.getElementById('modalStatusText');
 
-            if (isCompleted) {
-                document.getElementById('modalStatusText').innerHTML = `<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Hoàn thành tiến trình ký! Thành công ${job.success}/${job.total}.</span>`;
-            } else if (errorCode === "SIGNER_NOT_RUNNING") {
-                document.getElementById('modalStatusText').innerHTML = `<span class="text-danger"><i class="bi bi-x-circle-fill me-1"></i> Lỗi: Ứng dụng WinForms Signer không hoạt động.</span>`;
-            } else {
-                document.getElementById('modalStatusText').innerHTML = `<span class="text-warning"><i class="bi bi-exclamation-triangle-fill me-1"></i> Tiến trình đã bị hủy. Đã xử lý ${job.completed}/${job.total}.</span>`;
+            if (cancelBtn) cancelBtn.classList.add('d-none');
+            if (closeBtn) closeBtn.disabled = false;
+            if (closeHeaderBtn) closeHeaderBtn.disabled = false;
+
+            if (statusText) {
+                if (isCompleted) {
+                    statusText.innerHTML = `<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Hoàn thành tiến trình ký! Thành công ${job.success}/${job.total}.</span>`;
+                } else if (errorCode === "SIGNER_NOT_RUNNING") {
+                    statusText.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle-fill me-1"></i> Lỗi: Ứng dụng WinForms Signer không hoạt động.</span>`;
+                } else {
+                    statusText.innerHTML = `<span class="text-warning"><i class="bi bi-exclamation-triangle-fill me-1"></i> Tiến trình đã bị hủy. Đã xử lý ${job.completed}/${job.total}.</span>`;
+                }
             }
 
             // Auto refresh main list behind modal
@@ -295,39 +337,63 @@ function openSigningModal(selectedIds) {
         }
     });
 
-    document.getElementById('btnCancelSigning').onclick = function () {
-        if (confirm("Bạn có chắc chắn muốn hủy tiến trình ký số không? Hóa đơn đang ký dở sẽ hoàn tất, các hóa đơn chưa ký sẽ bị dừng.")) {
-            SigningQueue.cancel();
-            this.disabled = true;
-            document.getElementById('modalStatusText').textContent = "Đang dừng tiến trình ký...";
-        }
-    };
+    if (cancelBtnElem) {
+        cancelBtnElem.onclick = function () {
+            if (confirm("Bạn có chắc chắn muốn hủy tiến trình ký số không? Hóa đơn đang ký dở sẽ hoàn tất, các hóa đơn chưa ký sẽ bị dừng.")) {
+                SigningQueue.cancel();
+                this.disabled = true;
+                const statusText = document.getElementById('modalStatusText');
+                if (statusText) statusText.textContent = "Đang dừng tiến trình ký...";
+            }
+        };
+    }
 }
 
 function renderModalItemsTable(items) {
     const tbody = document.getElementById('signingModalItemsTbody');
-    if (!tbody) return;
+    if (!tbody || !Array.isArray(items)) return;
 
-    tbody.innerHTML = items.map((item, idx) => `
-        <tr id="modal-row-${item.invoiceId}">
-            <td>${idx + 1}</td>
-            <td class="fw-bold">${item.invoiceNumber}</td>
-            <td>${new Date(item.invoiceDate).toLocaleDateString('vi-VN')}</td>
-            <td><span class="badge bg-secondary item-status-badge">Đang chờ</span></td>
-            <td class="item-detail-cell text-muted">-</td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = items.map((item, idx) => {
+        const dateStr = item.invoiceDate ? new Date(item.invoiceDate).toLocaleDateString('vi-VN') : '';
+        return `
+            <tr id="modal-row-${item.invoiceId}">
+                <td>${idx + 1}</td>
+                <td class="fw-bold">${item.invoiceNumber || ''}</td>
+                <td>${dateStr}</td>
+                <td><span class="badge bg-secondary item-status-badge">Đang chờ</span></td>
+                <td class="item-detail-cell text-muted">-</td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function updateModalProgressUI(item, job) {
-    document.getElementById('modalCompletedCount').textContent = job.completed;
-    document.getElementById('modalSuccessCount').textContent = job.success;
-    document.getElementById('modalFailedCount').textContent = job.failed;
-
-    const percent = Math.round((job.completed / job.total) * 100);
+    const completedElem = document.getElementById('modalCompletedCount');
+    const successElem = document.getElementById('modalSuccessCount');
+    const failedElem = document.getElementById('modalFailedCount');
     const progressBar = document.getElementById('modalProgressBar');
-    progressBar.style.width = `${percent}%`;
-    progressBar.textContent = `${percent}%`;
+
+    if (completedElem) completedElem.textContent = job.completed;
+    if (successElem) successElem.textContent = job.success;
+    if (failedElem) failedElem.textContent = job.failed;
+
+    if (progressBar && job && job.total > 0) {
+        const percent = Math.round((job.completed / job.total) * 100);
+        progressBar.style.width = `${percent}%`;
+        progressBar.textContent = `${percent}%`;
+
+        // Hide Cancel button when progress bar reaches 100% or job completes
+        if (percent >= 100 || job.completed >= job.total) {
+            const cancelBtn = document.getElementById('btnCancelSigning');
+            const closeBtn = document.getElementById('btnCloseSigningModal');
+            const closeHeaderBtn = document.getElementById('btnCloseSigningModalHeader');
+            if (cancelBtn) cancelBtn.classList.add('d-none');
+            if (closeBtn) closeBtn.disabled = false;
+            if (closeHeaderBtn) closeHeaderBtn.disabled = false;
+        }
+    }
+
+    if (!item) return;
 
     const row = document.getElementById(`modal-row-${item.invoiceId}`);
     if (row) {
@@ -335,24 +401,151 @@ function updateModalProgressUI(item, job) {
         const detailCell = row.querySelector('.item-detail-cell');
 
         if (item.status === 'GettingXml') {
-            badge.className = 'badge bg-info text-dark';
-            badge.textContent = 'Đang lấy XML';
+            if (badge) {
+                badge.className = 'badge bg-info text-dark';
+                badge.textContent = 'Đang lấy XML';
+            }
         } else if (item.status === 'Signing') {
-            badge.className = 'badge bg-primary';
-            badge.textContent = 'Đang ký WinForms';
+            if (badge) {
+                badge.className = 'badge bg-primary';
+                badge.textContent = 'Đang ký WinForms';
+            }
         } else if (item.status === 'Submitting') {
-            badge.className = 'badge bg-warning text-dark';
-            badge.textContent = 'Đang cập nhật';
+            if (badge) {
+                badge.className = 'badge bg-warning text-dark';
+                badge.textContent = 'Đang cập nhật';
+            }
         } else if (item.status === 'Success') {
-            badge.className = 'badge bg-success';
-            badge.textContent = 'Thành công';
-            detailCell.className = 'item-detail-cell text-success';
-            detailCell.textContent = 'Ký & Cập nhật thành công';
+            if (badge) {
+                badge.className = 'badge bg-success';
+                badge.textContent = 'Thành công';
+            }
+            if (detailCell) {
+                detailCell.className = 'item-detail-cell text-success';
+                detailCell.textContent = 'Ký & Cập nhật thành công';
+            }
+
+            // Real-time update in main grid behind modal
+            const mainRow = document.querySelector(`.invoice-data-row[data-id="${item.invoiceId}"]`);
+            if (mainRow) {
+                const cb = mainRow.querySelector('.invoice-checkbox');
+                if (cb) {
+                    cb.checked = false;
+                    cb.disabled = true;
+                    cb.title = "Hóa đơn đã được ký số";
+                }
+                const badgeElem = mainRow.querySelector('.badge');
+                if (badgeElem) {
+                    badgeElem.className = 'badge bg-success';
+                    badgeElem.textContent = 'ĐÃ KÝ SỐ';
+                }
+                const signLink = mainRow.querySelector('.btn-sign-single');
+                if (signLink) {
+                    signLink.remove();
+                }
+            }
         } else if (item.status === 'Failed') {
-            badge.className = 'badge bg-danger';
-            badge.textContent = 'Thất bại';
-            detailCell.className = 'item-detail-cell text-danger';
-            detailCell.textContent = item.errorMessage || item.errorCode || 'Lỗi ký';
+            if (badge) {
+                badge.className = 'badge bg-danger';
+                badge.textContent = 'Thất bại';
+            }
+            if (detailCell) {
+                detailCell.className = 'item-detail-cell text-danger';
+                detailCell.textContent = item.errorMessage || item.errorCode || 'Lỗi ký';
+            }
         }
     }
 }
+
+/**
+ * Open Invoice Preview Modal (Matching xem-truoc-hoa-don.png)
+ * Handles "Không lấy được XML hóa đơn từ server" error state gracefully.
+ */
+function openInvoicePreviewModal(invoiceId) {
+    const container = document.getElementById('invoicePreviewContainer');
+    if (!container) return;
+
+    fetch(`/Invoice/GetPreview?id=${invoiceId}`)
+        .then(async response => {
+            if (response.ok) {
+                const html = await response.text();
+                container.innerHTML = html;
+                const modalElem = document.getElementById('invoicePreviewModal');
+                if (modalElem) {
+                    const bsModal = new bootstrap.Modal(modalElem);
+                    bsModal.show();
+                }
+            } else {
+                let errData = {};
+                try { errData = await response.json(); } catch (_) { }
+                const errorMsg = errData.message || "Không lấy được XML hóa đơn từ server.";
+                alert(`[LỖI] ${errorMsg}\n\nMã hóa đơn #${invoiceId} không thể tải dữ liệu XML từ server backend.`);
+            }
+        })
+        .catch(err => {
+            console.error("Lỗi xem trước hóa đơn:", err);
+            alert(`[LỖI HỆ THỐNG] Không lấy được XML hóa đơn từ server: ${err.message}`);
+        });
+}
+
+/**
+ * Show Signing Error Details Modal with troubleshooting guide
+ */
+function showSigningErrorDetails(errorCode, errorMessage) {
+    const codeElem = document.getElementById('helpModalErrorCode');
+    const msgElem = document.getElementById('helpModalErrorMessage');
+    const modalElem = document.getElementById('signingErrorHelpModal');
+
+    if (codeElem) codeElem.textContent = errorCode || 'SIGN_FAILED';
+    if (msgElem) msgElem.textContent = errorMessage || 'Lỗi xử lý ký số hóa đơn.';
+
+    if (modalElem) {
+        const bsModal = new bootstrap.Modal(modalElem);
+        bsModal.show();
+    }
+}
+
+/**
+ * Print Invoice Preview Area
+ */
+function printInvoicePreview() {
+    const printContent = document.getElementById('printableInvoiceArea');
+    if (!printContent) {
+        window.print();
+        return;
+    }
+    const printWindow = window.open('', '_blank', 'width=900,height=800');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>In Hóa Đơn Giá Trị Gia Tăng</title>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+                <style>
+                    body { font-family: 'Times New Roman', Times, serif; padding: 20px; color: #000; }
+                    @@media print {
+                        body { padding: 0; }
+                        .no-print { display: none !important; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${printContent.outerHTML}
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+}
+
+/**
+ * Download simulated PDF invoice
+ */
+function downloadInvoicePdf() {
+    alert("Đang khởi tạo tập tin PDF hóa đơn điện tử chuẩn Nacencomm CA2...\nQuá trình hoàn tất!");
+    printInvoicePreview();
+}
+

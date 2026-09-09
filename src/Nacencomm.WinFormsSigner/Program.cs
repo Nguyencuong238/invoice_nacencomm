@@ -11,12 +11,12 @@ builder.WebHost.ConfigureKestrel(options =>
     options.ListenLocalhost(8765);
 });
 
-// Configure CORS for Local Web application
+// Configure CORS for Local Web application (Allows web app running on any server domain/IP to connect to local 127.0.0.1:8765)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalWeb", policy =>
     {
-        policy.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost" || new Uri(origin).Host == "127.0.0.1")
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
               .AllowAnyMethod();
     });

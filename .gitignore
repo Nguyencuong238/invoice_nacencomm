@@ -30,3 +30,5 @@ $RECYCLE.BIN/
 # Publish output directories
 publish/
 publish_*/
+src/Nacencomm.InvoiceManagement/wwwroot/downloads/
+

@@ -7,6 +7,13 @@ namespace Nacencomm.InvoiceManagement.Controllers;
 
 public class HomeController : Controller
 {
+    private readonly IWebHostEnvironment _env;
+
+    public HomeController(IWebHostEnvironment env)
+    {
+        _env = env;
+    }
+
     public IActionResult Index()
     {
         return View();
@@ -26,19 +33,25 @@ public class HomeController : Controller
     [HttpGet("Home/DownloadSignerApp")]
     public IActionResult DownloadSignerApp()
     {
-        // 1. Check for published ZIP package on disk
-        var zipPath = Path.Combine(Directory.GetCurrentDirectory(), "publish", "Nacencomm.WinFormsSigner.zip");
-        if (System.IO.File.Exists(zipPath))
+        // 1. Check candidate paths for published ZIP package on disk
+        var candidateZipPaths = new[]
         {
-            var bytes = System.IO.File.ReadAllBytes(zipPath);
-            return File(bytes, "application/zip", "Nacencomm.WinFormsSigner.zip");
-        }
+            Path.Combine(_env.WebRootPath, "downloads", "signer", "Nacencomm.WinFormsSigner.zip"),
+            Path.Combine(_env.ContentRootPath, "wwwroot", "downloads", "signer", "Nacencomm.WinFormsSigner.zip"),
+            Path.Combine(_env.ContentRootPath, "publish", "Nacencomm.WinFormsSigner.zip"),
+            Path.Combine(_env.ContentRootPath, "..", "publish", "Nacencomm.WinFormsSigner.zip"),
+            Path.Combine(_env.ContentRootPath, "..", "..", "publish", "Nacencomm.WinFormsSigner.zip"),
+            Path.Combine(Directory.GetCurrentDirectory(), "publish", "Nacencomm.WinFormsSigner.zip"),
+            Path.Combine(Directory.GetCurrentDirectory(), "..", "publish", "Nacencomm.WinFormsSigner.zip")
+        };
 
-        var wwwrootZip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "downloads", "signer", "Nacencomm.WinFormsSigner.zip");
-        if (System.IO.File.Exists(wwwrootZip))
+        foreach (var zipPath in candidateZipPaths)
         {
-            var bytes = System.IO.File.ReadAllBytes(wwwrootZip);
-            return File(bytes, "application/zip", "Nacencomm.WinFormsSigner.zip");
+            if (System.IO.File.Exists(zipPath))
+            {
+                var bytes = System.IO.File.ReadAllBytes(zipPath);
+                return File(bytes, "application/zip", "Nacencomm.WinFormsSigner.zip");
+            }
         }
 
         // 2. Dynamically generate a valid ZIP package containing full ClickOnce file structure
@@ -126,14 +139,25 @@ public class HomeController : Controller
 
     private byte[] GetWinFormsSignerExeBytes()
     {
-        var publishExe = Path.Combine(Directory.GetCurrentDirectory(), "publish", "Nacencomm.WinFormsSigner.exe");
-        if (System.IO.File.Exists(publishExe)) return System.IO.File.ReadAllBytes(publishExe);
+        var candidateExePaths = new[]
+        {
+            Path.Combine(_env.ContentRootPath, "..", "publish", "Nacencomm.WinFormsSigner", "Nacencomm.WinFormsSigner.exe"),
+            Path.Combine(_env.ContentRootPath, "..", "publish_singlefile", "Nacencomm.WinFormsSigner.exe"),
+            Path.Combine(_env.ContentRootPath, "publish", "Nacencomm.WinFormsSigner.exe"),
+            Path.Combine(Directory.GetCurrentDirectory(), "publish", "Nacencomm.WinFormsSigner.exe"),
+            Path.Combine(_env.ContentRootPath, "..", "src", "Nacencomm.WinFormsSigner", "bin", "Release", "net8.0", "win-x64", "Nacencomm.WinFormsSigner.exe"),
+            Path.Combine(_env.ContentRootPath, "..", "src", "Nacencomm.WinFormsSigner", "bin", "Debug", "net8.0", "win-x64", "Nacencomm.WinFormsSigner.exe"),
+            Path.Combine(_env.ContentRootPath, "..", "src", "Nacencomm.WinFormsSigner", "bin", "Release", "net8.0", "Nacencomm.WinFormsSigner.exe"),
+            Path.Combine(_env.ContentRootPath, "..", "src", "Nacencomm.WinFormsSigner", "bin", "Debug", "net8.0", "Nacencomm.WinFormsSigner.exe")
+        };
 
-        var binPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "Nacencomm.WinFormsSigner", "bin", "Debug", "net8.0", "Nacencomm.WinFormsSigner.exe");
-        if (System.IO.File.Exists(binPath)) return System.IO.File.ReadAllBytes(binPath);
-
-        var binReleasePath = Path.Combine(Directory.GetCurrentDirectory(), "..", "Nacencomm.WinFormsSigner", "bin", "Release", "net8.0", "Nacencomm.WinFormsSigner.exe");
-        if (System.IO.File.Exists(binReleasePath)) return System.IO.File.ReadAllBytes(binReleasePath);
+        foreach (var exePath in candidateExePaths)
+        {
+            if (System.IO.File.Exists(exePath))
+            {
+                return System.IO.File.ReadAllBytes(exePath);
+            }
+        }
 
         return System.Text.Encoding.UTF8.GetBytes("Nacencomm WinForms Signer Executable Placeholder");
     }

@@ -12,7 +12,7 @@ $clickonceDir = "$OutputDir/Nacencomm.WinFormsSigner"
 if (Test-Path $clickonceDir) { Remove-Item -Recurse -Force $clickonceDir }
 New-Item -ItemType Directory -Path $clickonceDir -Force | Out-Null
 
-Write-Host "[1/3] Building WinForms application binaries..." -ForegroundColor Yellow
+Write-Host "[1/3] Building WinForms application binaries (Multi-File Package)..." -ForegroundColor Yellow
 dotnet publish src/Nacencomm.WinFormsSigner/Nacencomm.WinFormsSigner.csproj -c Release -o $clickonceDir
 
 Write-Host "[2/3] Generating ClickOnce Manifest files (.application & .manifest)..." -ForegroundColor Yellow
@@ -70,10 +70,16 @@ $appPublishDir = "$clickonceDir/app.publish"
 if (!(Test-Path $appPublishDir)) { New-Item -ItemType Directory -Path $appPublishDir -Force }
 Copy-Item -Path "$clickonceDir/Nacencomm.WinFormsSigner.exe" -Destination "$appPublishDir/Nacencomm.WinFormsSigner.exe" -Force
 
-Write-Host "[3/3] Packing full package (.application, .manifest, .config, .exe, app.publish) into ZIP..." -ForegroundColor Yellow
+Write-Host "[3/3] Packing package into ZIP..." -ForegroundColor Yellow
 $zipPath = "$OutputDir/Nacencomm.WinFormsSigner.zip"
 if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
 Compress-Archive -Path "$clickonceDir" -DestinationPath $zipPath -Force
+
+# Copy to wwwroot static downloads folder
+$wwwrootSignerDir = "./src/Nacencomm.InvoiceManagement/wwwroot/downloads/signer"
+if (!(Test-Path $wwwrootSignerDir)) { New-Item -ItemType Directory -Path $wwwrootSignerDir -Force }
+Copy-Item -Path $zipPath -Destination "$wwwrootSignerDir/Nacencomm.WinFormsSigner.zip" -Force
+Write-Host "Copied package to wwwroot: $wwwrootSignerDir/Nacencomm.WinFormsSigner.zip" -ForegroundColor Green
 
 Write-Host "`n[SUCCESS] Package generated at: $zipPath" -ForegroundColor Green
 Write-Host "Unzipping this package reveals the exact set of files matching the reference sample!" -ForegroundColor Green

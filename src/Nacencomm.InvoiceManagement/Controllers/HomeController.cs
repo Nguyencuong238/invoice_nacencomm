@@ -33,6 +33,10 @@ public class HomeController : Controller
     [HttpGet("Home/DownloadSignerApp")]
     public IActionResult DownloadSignerApp()
     {
+        Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+        Response.Headers["Pragma"] = "no-cache";
+        Response.Headers["Expires"] = "0";
+
         // 1. Check candidate paths for published ZIP package on disk
         var candidateZipPaths = new[]
         {
